@@ -136,7 +136,7 @@ select customer.name, saleprice
 
 -- Oracle 중첩질의문제
 -- (5)박지성이 구매한 도서의 출판사 수
-select customer.name 이름, count(distinct publisher) 출판사수 from book, customer, orders
+select count(distinct publisher) 출판사수 from book, customer, orders
        where orders.custid = customer.custid and book.bookid = orders.bookid
              and customer.name = '박지성'
        group by customer.name;
@@ -151,15 +151,32 @@ select bookname from book
                             where custid = (select custid from customer
                                             where name='박지성'));
 -- (8)주문하지 않은 고객의 이름(부속질의사용)
+select name from customer
+       where custid not in (select custid from orders
+                            where orders.custid=customer.custid);
 -- (9) 주문금액의 총액과 주문의 평균금액
+select sum(saleprice) as 총주문금액, avg(saleprice) as 주문평균금액 from orders;
 -- (10) 고객의 이름과 고객별 구매액
+select customer.name, sum(orders.saleprice)
+       from customer, orders
+       where customer.custid=orders.custid
+       group by customer.name;
 -- (11) 고객의 이름과 고객이 구매한 도서목록
+select customer.name, book.bookname
+       from customer, orders, book
+       where customer.custid=orders.custid
+             and orders.bookid=book.bookid;
 -- (12) 도서의 가격과 판매가격의 차이가 가장 많은 주문
--- (13) 도서의 판매액 평균보다 자신의 구매액 평균이 더 높은 고객의 이름
+select * from orders, book
+       where book.price-orders.saleprice =
+             (select max(book.price-orders.saleprice)
+                 from orders, book
+                 where book.bookid = orders.bookid);
+-- (13) 도서의 판매액 평균보다 자신의 구매액 평균이 더 높은 고객의 이름;
+select name, avg(saleprice) from customer, orders
+       where customer.custid=orders.custid group by name
+             having avg(saleprice) > (select avg(saleprice) from orders);
 
-select * from customer;
-select * from orders;
-select * from book;
 
 select b1.bookname from Book b1 where b1.price > (select avg(b2.price) from Book b2 where b2.publisher=b1.publisher);
 -- 마당서점의 고객별 판매액(결과는 고객이름과 고객별 판매액 출력)
