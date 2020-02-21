@@ -177,6 +177,32 @@ select name, avg(saleprice) from customer, orders
        where customer.custid=orders.custid group by name
              having avg(saleprice) > (select avg(saleprice) from orders);
 
+--- 부속질의에 관한 다음 SQL문을 수행해보고 어떤 질의에 대한 답인지 설명하시오.
+------ (1)
+select custid, (select address
+                from customer cs
+                where cs.custid=od.custid) "address",
+                sum(saleprice) "total"
+from orders od
+group by od.custid;
+-- 책을 구매한 고객의 고객번호, 주소, 총구매금액
+------ (2)
+select cs.name, s
+from (select custid, AVG(saleprice) s
+      from orders
+      group by custid) od, customer cs
+where cs.custid=od.custid;
+-- 책을 구매한 고객이름과 평균구매금액
+------ (3)
+select sum(saleprice) "total"
+from orders od
+where exists (select *
+              from customer cs
+              where custid <= 3 and cs.custid=od.custid);
+-- 고객번호가 3보다 작거나 같고, 구매한 내역이 있는 고객의 총구매금액
+select * from customer;
+select * from orders;
+select * from book;
 
 select b1.bookname from Book b1 where b1.price > (select avg(b2.price) from Book b2 where b2.publisher=b1.publisher);
 -- 마당서점의 고객별 판매액(결과는 고객이름과 고객별 판매액 출력)
